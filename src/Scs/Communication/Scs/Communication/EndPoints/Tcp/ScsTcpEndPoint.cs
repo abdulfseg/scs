@@ -78,9 +78,9 @@ namespace Hik.Communication.Scs.Communication.EndPoints.Tcp
         /// Creates a Scs Client that uses this end point to connect to server.
         /// </summary>
         /// <returns>Scs Client</returns>
-        internal override IScsClient CreateClient()
+        internal override IScsClient CreateClient(int pingTimeout)
         {
-            return new ScsTcpClient(this);
+            return new ScsTcpClient(this,pingTimeout);
         }
         
       /// <summary>
@@ -90,9 +90,9 @@ namespace Hik.Communication.Scs.Communication.EndPoints.Tcp
       /// <param name="acceptSelfSignedCerts"></param>
       /// <param name="nombreServerCert"></param>
       /// <returns></returns>
-        internal override IScsClient CreateSecureClient(X509Certificate2 serverCert, X509Certificate2 clientCert, string nombreServerCert)
+        internal override IScsClient CreateSecureClient(X509Certificate2 serverCert, X509Certificate2 clientCert, string nombreServerCert,int pingTimeout)
         {
-            return new ScsTcpSslClient(this, serverCert, clientCert, nombreServerCert);
+            return new ScsTcpSslClient(this, serverCert, clientCert, nombreServerCert,pingTimeout);
         }
 
         /// <summary>

@@ -14,15 +14,18 @@ namespace Hik.Communication.Scs.Client.Tcp
         /// </summary>
         /// <param name="endPoint">IP endpoint of remote server</param>
         /// <param name="timeoutMs">Timeout to wait until connect</param>
+        /// <param name="socketOptions">socket options: 1 - SocketOptionLevel, 2 - SocketOptionName, 3 - value</param>
         /// <returns>Socket object connected to server</returns>
         /// <exception cref="SocketException">Throws SocketException if can not connect.</exception>
         /// <exception cref="TimeoutException">Throws TimeoutException if can not connect within specified timeoutMs</exception>
-        public static Socket ConnectToServer(EndPoint endPoint, int timeoutMs)
-        {
+        public static Socket ConnectToServer(EndPoint endPoint, int timeoutMs, params Tuple<SocketOptionLevel,SocketOptionName,dynamic>[] socketOptions ) {
             var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
+            foreach (var socketOption in socketOptions) {
+                socket.SetSocketOption(socketOption.Item1, socketOption.Item2, socketOption.Item3);
+            }
             try
             {
-                socket.Blocking = false;
+                socket.Blocking = false;                
                 socket.Connect(endPoint);
                 socket.Blocking = true;
                 return socket;

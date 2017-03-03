@@ -1,4 +1,5 @@
 ﻿
+using System;
 using Hik.Communication.Scs.Communication.Channels;
 using Hik.Communication.Scs.Communication.Channels.Tcp;
 using Hik.Communication.Scs.Communication.EndPoints.Tcp;
@@ -31,7 +32,7 @@ namespace Hik.Communication.Scs.Client.Tcp
         /// <param name="serverCert"></param>
         /// <param name="clientCert"></param>
         /// <param name="nombreServerCert"></param>
-        public ScsTcpSslClient(ScsTcpEndPoint serverEndPoint, X509Certificate2 serverCert, X509Certificate2 clientCert, string nombreServerCert)
+        public ScsTcpSslClient(ScsTcpEndPoint serverEndPoint, X509Certificate2 serverCert, X509Certificate2 clientCert, string nombreServerCert,int pingTimeout):base(pingTimeout)
         {
             _serverEndPoint = serverEndPoint;
             _serverCert = serverCert;
@@ -43,7 +44,7 @@ namespace Hik.Communication.Scs.Client.Tcp
         /// Creates a communication channel using ServerIpAddress and ServerPort.
         /// </summary>
         /// <returns>Ready communication channel to communicate</returns>
-        protected override ICommunicationChannel CreateCommunicationChannel()
+        protected override ICommunicationChannel CreateCommunicationChannel(params Tuple<SocketOptionLevel,SocketOptionName,object>[] socketOptions)
         {
             TcpClient client = new TcpClient();
             SslStream sslStream;

@@ -72,7 +72,7 @@ namespace Hik.Communication.Scs.Communication.EndPoints
         /// Creates a Scs Server that uses this end point to connect to server.
         /// </summary>
         /// <returns>Scs Client</returns>
-        internal abstract IScsClient CreateClient();
+        internal abstract IScsClient CreateClient(int pingTimeout);
         
       /// <summary>
       /// SSL
@@ -81,6 +81,6 @@ namespace Hik.Communication.Scs.Communication.EndPoints
       /// <param name="acceptSelfSignedCerts"></param>
       /// <param name="nombreServerCert"></param>
       /// <returns></returns>
-        internal abstract IScsClient CreateSecureClient(X509Certificate2 serverCert, X509Certificate2 clientCert, string nombreServerCert);
+        internal abstract IScsClient CreateSecureClient(X509Certificate2 serverCert, X509Certificate2 clientCert, string nombreServerCert,int pingTimeout);
     }
 }

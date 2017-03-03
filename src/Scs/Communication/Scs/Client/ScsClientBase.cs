@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Sockets;
 using Hik.Communication.Scs.Communication;
 using Hik.Communication.Scs.Communication.Messages;
 using Hik.Communication.Scs.Communication.Channels;
@@ -133,9 +134,9 @@ namespace Hik.Communication.Scs.Client
         /// <summary>
         /// Constructor.
         /// </summary>
-        protected ScsClientBase()
+        protected ScsClientBase(int pingTimeout)
         {
-            _pingTimer = new Timer(30000);
+            _pingTimer = new Timer(pingTimeout);
             _pingTimer.Elapsed += PingTimer_Elapsed;
             ConnectTimeout = DefaultConnectionAttemptTimeout;
             WireProtocol = WireProtocolManager.GetDefaultWireProtocol();
@@ -148,10 +149,10 @@ namespace Hik.Communication.Scs.Client
         /// <summary>
         /// Connects to server.
         /// </summary>
-        public void Connect()
+        public void Connect(params Tuple<SocketOptionLevel,SocketOptionName,object>[] socketOptions)
         {
             WireProtocol.Reset();
-            _communicationChannel = CreateCommunicationChannel();
+            _communicationChannel = CreateCommunicationChannel(socketOptions);
             _communicationChannel.WireProtocol = WireProtocol;
             _communicationChannel.Disconnected += CommunicationChannel_Disconnected;
             _communicationChannel.MessageReceived += CommunicationChannel_MessageReceived;
@@ -206,7 +207,7 @@ namespace Hik.Communication.Scs.Client
         /// This method is implemented by derived classes to create appropriate communication channel.
         /// </summary>
         /// <returns>Ready communication channel to communicate</returns>
-        protected abstract ICommunicationChannel CreateCommunicationChannel();
+        protected abstract ICommunicationChannel CreateCommunicationChannel(params Tuple<SocketOptionLevel,SocketOptionName,object>[] socketOptions);
 
         #endregion
 

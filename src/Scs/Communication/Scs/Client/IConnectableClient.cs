@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Sockets;
 using Hik.Communication.Scs.Communication;
 
 namespace Hik.Communication.Scs.Client
@@ -32,7 +33,7 @@ namespace Hik.Communication.Scs.Client
         /// <summary>
         /// Connects to server.
         /// </summary>
-        void Connect();
+        void Connect(params Tuple<SocketOptionLevel,SocketOptionName,object>[] socketOptions);
 
         /// <summary>
         /// Disconnects from server.

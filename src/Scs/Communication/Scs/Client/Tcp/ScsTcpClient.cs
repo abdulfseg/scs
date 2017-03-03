@@ -1,7 +1,9 @@
-﻿using Hik.Communication.Scs.Communication.Channels;
+﻿using System;
+using Hik.Communication.Scs.Communication.Channels;
 using Hik.Communication.Scs.Communication.Channels.Tcp;
 using Hik.Communication.Scs.Communication.EndPoints.Tcp;
 using System.Net;
+using System.Net.Sockets;
 
 namespace Hik.Communication.Scs.Client.Tcp
 {
@@ -19,7 +21,7 @@ namespace Hik.Communication.Scs.Client.Tcp
         /// Creates a new ScsTcpClient object.
         /// </summary>
         /// <param name="serverEndPoint">The endpoint address to connect to the server</param>
-        public ScsTcpClient(ScsTcpEndPoint serverEndPoint)
+        public ScsTcpClient(ScsTcpEndPoint serverEndPoint,int pingTimeout):base(pingTimeout)
         {
             _serverEndPoint = serverEndPoint;
         }
@@ -28,7 +30,7 @@ namespace Hik.Communication.Scs.Client.Tcp
         /// Creates a communication channel using ServerIpAddress and ServerPort.
         /// </summary>
         /// <returns>Ready communication channel to communicate</returns>
-        protected override ICommunicationChannel CreateCommunicationChannel()
+        protected override ICommunicationChannel CreateCommunicationChannel(params Tuple<SocketOptionLevel,SocketOptionName,object>[] socketOptions)
         {
 
             EndPoint endpoint = null;
@@ -42,11 +44,7 @@ namespace Hik.Communication.Scs.Client.Tcp
                 endpoint = new DnsEndPoint(_serverEndPoint.IpAddress, _serverEndPoint.TcpPort);
             }
 
-            return new TcpCommunicationChannel(
-                TcpHelper.ConnectToServer(
-                    endpoint,
-                    ConnectTimeout
-                    ));
+            return new TcpCommunicationChannel(TcpHelper.ConnectToServer(endpoint,ConnectTimeout,socketOptions));
 
 
         }

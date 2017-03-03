@@ -35,9 +35,6 @@
     <DocumentationFile>bin\Release\Scs.XML</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="NLog">
-      <HintPath>..\..\..\..\polypus\0.9.0.0\polypus\packages\NLog.4.1.0\lib\net40\NLog.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -128,7 +125,6 @@
     <None Include="Diagrams\ScsServiceDiagram.cd" />
     <None Include="Diagrams\ServiceSideClientDiagram.cd" />
     <None Include="Diagrams\WireProtocolsDiagram.cd" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Changes.txt" />

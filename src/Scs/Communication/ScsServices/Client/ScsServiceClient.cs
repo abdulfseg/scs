@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Sockets;
 using System.Reflection;
 using Hik.Communication.Scs.Client;
 using Hik.Communication.Scs.Communication;
@@ -128,9 +129,9 @@ namespace Hik.Communication.ScsServices.Client
         /// <summary>
         /// Connects to server.
         /// </summary>
-        public void Connect()
+        public void Connect(params Tuple<SocketOptionLevel,SocketOptionName,object>[] socketOptions)
         {
-            _client.Connect();
+            _client.Connect(socketOptions);
         }
 
         /// <summary>
