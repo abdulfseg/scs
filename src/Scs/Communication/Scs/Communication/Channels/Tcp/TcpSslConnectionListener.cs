@@ -1,9 +1,12 @@
-﻿using System.Net.Sockets;
+﻿using System;
+using System.Net.Sockets;
 using System.Threading;
 using System.Net.Security;
 using System.Security.Cryptography.X509Certificates;
 using Hik.Communication.Scs.Communication.EndPoints.Tcp;
 using System.Collections.Generic;
+using System.Linq;
+
 namespace Hik.Communication.Scs.Communication.Channels.Tcp
 {
     /// <summary>
@@ -107,7 +110,7 @@ namespace Hik.Communication.Scs.Communication.Channels.Tcp
                     if (client.Connected)
                     {
                         SslStream sslStream = new SslStream(client.GetStream(), false, new RemoteCertificateValidationCallback(ValidateCertificate)); 
-                        sslStream.AuthenticateAsServer(_serverCert, true, System.Security.Authentication.SslProtocols.Default, true);
+                        sslStream.AuthenticateAsServer(_serverCert, true, System.Security.Authentication.SslProtocols.Tls12, true);
 
                         OnCommunicationChannelConnected(new TcpSslCommunicationChannel(_endPoint, client, sslStream));
                     }
@@ -146,21 +149,13 @@ namespace Hik.Communication.Scs.Communication.Channels.Tcp
         {
 
             if (_clientCerts == null)
-            {
+            {                
                 return false;
             }
-
-            if ((sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors) && (_clientCerts != null))
-            {
-                foreach (var _clientCert in _clientCerts)
-                    if (_clientCert.GetCertHashString().Equals(certificate.GetCertHashString()))
-                        return true;
-                return false;
+            if ((sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors) && (_clientCerts != null)) {
+                return _clientCerts.Any(_clientCert => _clientCert.GetCertHashString().Equals(certificate.GetCertHashString()));
             }
-            else
-            {
-                return (sslPolicyErrors == SslPolicyErrors.None);
-            }
+            return (sslPolicyErrors == SslPolicyErrors.None);
         }
     }
 }

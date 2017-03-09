@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Security;
 using Hik.Communication.Scs.Communication.EndPoints;
 using System.Security.Cryptography.X509Certificates;
 namespace Hik.Communication.Scs.Client
@@ -36,10 +37,13 @@ namespace Hik.Communication.Scs.Client
         /// <param name="serverCert"></param>
         /// <param name="clientCert"></param>
         /// <param name="nombreServerCert"></param>
+        /// <param name="pingTimeout"></param>
+        /// <param name="remoteCertificateFalidatonCallback"></param>
+        /// <param name="localCertificateSelectionCallback"></param>
         /// <returns></returns>
-        public static IScsClient CreateSecureClient(ScsEndPoint endpoint, X509Certificate2 serverCert, X509Certificate2 clientCert, string nombreServerCert,TimeSpan pingTimeout)
+        public static IScsClient CreateSecureClient(ScsEndPoint endpoint, X509Certificate2 clientCert, string nombreServerCert,TimeSpan pingTimeout,Func<object, X509Certificate, X509Chain, SslPolicyErrors,bool> remoteCertificateFalidatonCallback=null,Func<object, string, X509CertificateCollection, X509Certificate, string[],X509Certificate> localCertificateSelectionCallback=null)
         {
-            return endpoint.CreateSecureClient(serverCert, clientCert, nombreServerCert,pingTimeout.Seconds<=0?30000:pingTimeout.Seconds);
+            return endpoint.CreateSecureClient( clientCert, nombreServerCert,pingTimeout.Seconds<=0?30000:pingTimeout.Seconds,remoteCertificateFalidatonCallback,localCertificateSelectionCallback);
         }
 
         /// <summary>

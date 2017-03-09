@@ -21,10 +21,12 @@ namespace Hik.Communication.Scs.Client.Tcp
         /// </summary>
         private readonly ScsTcpEndPoint _serverEndPoint;
 
-        private readonly X509Certificate2 _serverCert;
+        //private readonly X509Certificate2 _serverCert;
         private readonly X509Certificate2 _clientCert;
         private readonly string _nombreServerCert;
-      
+        private readonly Func<object, X509Certificate, X509Chain, SslPolicyErrors, bool> _remoteCertificateFalidatonCallback;
+        private readonly Func<object, string, X509CertificateCollection, X509Certificate, string[], X509Certificate> _localCertificateSelectionCallback;
+
         /// <summary>
         /// 
         /// </summary>
@@ -32,62 +34,70 @@ namespace Hik.Communication.Scs.Client.Tcp
         /// <param name="serverCert"></param>
         /// <param name="clientCert"></param>
         /// <param name="nombreServerCert"></param>
-        public ScsTcpSslClient(ScsTcpEndPoint serverEndPoint, X509Certificate2 serverCert, X509Certificate2 clientCert, string nombreServerCert,int pingTimeout):base(pingTimeout)
+        /// <param name="remoteCertificateFalidatonCallback"></param>
+        /// <param name="localCertificateSelectionCallback"></param>
+        public ScsTcpSslClient(ScsTcpEndPoint serverEndPoint,  X509Certificate2 clientCert, string nombreServerCert,int pingTimeout,
+            Func<object, X509Certificate, X509Chain, SslPolicyErrors,bool> remoteCertificateFalidatonCallback,Func<object, string, X509CertificateCollection, X509Certificate, string[],X509Certificate> localCertificateSelectionCallback ):base(pingTimeout)
         {
-            _serverEndPoint = serverEndPoint;
-            _serverCert = serverCert;
+            _serverEndPoint = serverEndPoint;            
             _clientCert = clientCert;
             _nombreServerCert = nombreServerCert;
+            _remoteCertificateFalidatonCallback = remoteCertificateFalidatonCallback;
+            _localCertificateSelectionCallback = localCertificateSelectionCallback;
         }
 
         /// <summary>
         /// Creates a communication channel using ServerIpAddress and ServerPort.
         /// </summary>
         /// <returns>Ready communication channel to communicate</returns>
-        protected override ICommunicationChannel CreateCommunicationChannel(params Tuple<SocketOptionLevel,SocketOptionName,object>[] socketOptions)
-        {
-            TcpClient client = new TcpClient();
-            SslStream sslStream;
-            var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);
-
+        protected override ICommunicationChannel CreateCommunicationChannel(params Tuple<SocketOptionLevel,SocketOptionName,object>[] socketOptions) {
+            TcpClient client=null;
+            //var socket = new Socket(AddressFamily.InterNetwork, SocketType.Stream, ProtocolType.Tcp);            
+            IPAddress addrss;
             try
             {
                 client = new TcpClient();
-                client.Connect(new IPEndPoint(IPAddress.Parse(_serverEndPoint.IpAddress), _serverEndPoint.TcpPort));
+                if (IPAddress.TryParse(_serverEndPoint.IpAddress,out addrss))
+                {                            
+                    client.Connect(new IPEndPoint(addrss, _serverEndPoint.TcpPort));
+                }
+                else
+                {
+                    var endpoint = new DnsEndPoint(_serverEndPoint.IpAddress, _serverEndPoint.TcpPort);                
+                
+                    client.Connect(endpoint.Host, endpoint.Port);
+                }
+                var sslStream = new SslStream(client.GetStream(), false, 
+                    new RemoteCertificateValidationCallback(_remoteCertificateFalidatonCallback),
+                    new LocalCertificateSelectionCallback(_localCertificateSelectionCallback ?? SelectLocalCertificate));
 
-                sslStream = new SslStream(client.GetStream(), false, new RemoteCertificateValidationCallback(ValidateCertificate),
-                    new LocalCertificateSelectionCallback(SelectLocalCertificate));
-
-                X509Certificate2Collection clientCertificates = new X509Certificate2Collection();
+                var clientCertificates = new X509Certificate2Collection();
                 if (_clientCert != null)
                 {
                     clientCertificates.Add(_clientCert);
                 }
-
-                sslStream.AuthenticateAsClient(_nombreServerCert, clientCertificates, SslProtocols.Default, false);
-
-
+                sslStream.AuthenticateAsClient(_nombreServerCert, clientCertificates, SslProtocols.Tls12, false);
                 return new TcpSslCommunicationChannel( _serverEndPoint, client, sslStream);
             }
             catch (AuthenticationException)
             {
-                client.Close();
+                client?.Close();
                 throw;
             }
 
         }
 
-        public bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
-        {
-            if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors)
-            {
-                return _serverCert.GetCertHashString().Equals(certificate.GetCertHashString());
-            }
-            else
-            {
-                return (sslPolicyErrors == SslPolicyErrors.None);
-            }
-        }
+        //public bool ValidateCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        //{
+        //    if (sslPolicyErrors == SslPolicyErrors.RemoteCertificateChainErrors)
+        //    {
+        //        return _serverCert.GetCertHashString().Equals(certificate.GetCertHashString());
+        //    }
+        //    else
+        //    {
+        //        return (sslPolicyErrors == SslPolicyErrors.None);
+        //    }
+        //}
 
         public X509Certificate SelectLocalCertificate(object sender, string targetHost, X509CertificateCollection localCertificates, X509Certificate remoteCertificate, string[] acceptableIssuers)
         {

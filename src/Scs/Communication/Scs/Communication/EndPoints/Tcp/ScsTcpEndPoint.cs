@@ -5,6 +5,8 @@ using Hik.Communication.Scs.Client.Tcp;
 using Hik.Communication.Scs.Server;
 using Hik.Communication.Scs.Server.Tcp;
 using System.Collections.Generic;
+using System.Net.Security;
+
 namespace Hik.Communication.Scs.Communication.EndPoints.Tcp
 {
     /// <summary>
@@ -82,17 +84,21 @@ namespace Hik.Communication.Scs.Communication.EndPoints.Tcp
         {
             return new ScsTcpClient(this,pingTimeout);
         }
-        
-      /// <summary>
-      /// SSL
-      /// </summary>
-      /// <param name="certificateName"></param>
-      /// <param name="acceptSelfSignedCerts"></param>
-      /// <param name="nombreServerCert"></param>
-      /// <returns></returns>
-        internal override IScsClient CreateSecureClient(X509Certificate2 serverCert, X509Certificate2 clientCert, string nombreServerCert,int pingTimeout)
+
+        /// <summary>
+        /// SSL
+        /// </summary>
+        /// <param name="clientCert"></param>
+        /// <param name="nombreServerCert"></param>
+        /// <param name="pingTimeout"></param>
+        /// <param name="remoteCertificateFalidatonCallback"></param>
+        /// <param name="localCertificateSelectionCallback"></param>
+        /// <param name="certificateName"></param>
+        /// <param name="acceptSelfSignedCerts"></param>
+        /// <returns></returns>
+        internal override IScsClient CreateSecureClient(X509Certificate2 clientCert, string nombreServerCert,int pingTimeout,Func<object, X509Certificate, X509Chain, SslPolicyErrors,bool> remoteCertificateFalidatonCallback,Func<object, string, X509CertificateCollection, X509Certificate, string[],X509Certificate> localCertificateSelectionCallback)
         {
-            return new ScsTcpSslClient(this, serverCert, clientCert, nombreServerCert,pingTimeout);
+            return new ScsTcpSslClient(this, clientCert, nombreServerCert,pingTimeout,remoteCertificateFalidatonCallback,localCertificateSelectionCallback);
         }
 
         /// <summary>
