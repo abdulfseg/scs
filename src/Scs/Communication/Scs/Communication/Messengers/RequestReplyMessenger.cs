@@ -305,10 +305,12 @@ namespace Hik.Communication.Scs.Communication.Messengers
         /// <param name="message">Received message</param>
         protected virtual void OnMessageReceived(IScsMessage message)
         {
-            var handler = MessageReceived;
-            if (handler != null)
-            {
-                handler(this, new MessageEventArgs(message));
+            try {
+                var handler = MessageReceived;
+                handler?.Invoke(this, new MessageEventArgs(message));
+            }
+            catch (Exception e) {
+                throw;
             }
         }
 

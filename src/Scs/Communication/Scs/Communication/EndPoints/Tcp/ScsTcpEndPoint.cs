@@ -100,6 +100,10 @@ namespace Hik.Communication.Scs.Communication.EndPoints.Tcp
         {
             return new ScsTcpSslClient(this, clientCert, nombreServerCert,pingTimeout,remoteCertificateFalidatonCallback,localCertificateSelectionCallback);
         }
+        internal override IScsClient CreateSecureClient(X509Certificate2Collection clientCerts, string nombreServerCert,int pingTimeout,Func<object, X509Certificate, X509Chain, SslPolicyErrors,bool> remoteCertificateFalidatonCallback,Func<object, string, X509CertificateCollection, X509Certificate, string[],X509Certificate> localCertificateSelectionCallback)
+        {
+            return new ScsTcpSslClient(this, clientCerts, nombreServerCert,pingTimeout,remoteCertificateFalidatonCallback,localCertificateSelectionCallback);
+        }
 
         /// <summary>
         /// Generates a string representation of this end point object.

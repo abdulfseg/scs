@@ -88,5 +88,6 @@ namespace Hik.Communication.Scs.Communication.EndPoints
         /// <param name="acceptSelfSignedCerts"></param>
         /// <returns></returns>
         internal abstract IScsClient CreateSecureClient(X509Certificate2 clientCert, string nombreServerCert, int pingTimeout, Func<object, X509Certificate, X509Chain, SslPolicyErrors, bool> remoteCertificateFalidatonCallback, Func<object, string, X509CertificateCollection, X509Certificate, string[], X509Certificate> localCertificateSelectionCallback);
+        internal abstract IScsClient CreateSecureClient(X509Certificate2Collection clientCert, string nombreServerCert,int pingTimeout,Func<object, X509Certificate, X509Chain, SslPolicyErrors,bool> remoteCertificateFalidatonCallback,Func<object, string, X509CertificateCollection, X509Certificate, string[],X509Certificate> localCertificateSelectionCallback);
     }
 }

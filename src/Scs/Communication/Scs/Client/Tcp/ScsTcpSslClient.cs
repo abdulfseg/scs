@@ -1,5 +1,6 @@
 ﻿
 using System;
+using System.Linq;
 using Hik.Communication.Scs.Communication.Channels;
 using Hik.Communication.Scs.Communication.Channels.Tcp;
 using Hik.Communication.Scs.Communication.EndPoints.Tcp;
@@ -22,11 +23,18 @@ namespace Hik.Communication.Scs.Client.Tcp
         private readonly ScsTcpEndPoint _serverEndPoint;
 
         //private readonly X509Certificate2 _serverCert;
-        private readonly X509Certificate2 _clientCert;
+        private readonly X509Certificate2Collection _clientCerts;
         private readonly string _nombreServerCert;
         private readonly Func<object, X509Certificate, X509Chain, SslPolicyErrors, bool> _remoteCertificateFalidatonCallback;
         private readonly Func<object, string, X509CertificateCollection, X509Certificate, string[], X509Certificate> _localCertificateSelectionCallback;
 
+
+        public ScsTcpSslClient(ScsTcpEndPoint serverEndPoint, X509Certificate2 clientCert, string nombreServerCert, int pingTimeout,
+            Func<object, X509Certificate, X509Chain, SslPolicyErrors, bool> remoteCertificateFalidatonCallback,
+            Func<object, string, X509CertificateCollection, X509Certificate, string[], X509Certificate> localCertificateSelectionCallback)
+            : this(serverEndPoint,new X509Certificate2Collection(clientCert),nombreServerCert,pingTimeout,remoteCertificateFalidatonCallback,localCertificateSelectionCallback) {
+            
+        }
         /// <summary>
         /// 
         /// </summary>
@@ -36,15 +44,16 @@ namespace Hik.Communication.Scs.Client.Tcp
         /// <param name="nombreServerCert"></param>
         /// <param name="remoteCertificateFalidatonCallback"></param>
         /// <param name="localCertificateSelectionCallback"></param>
-        public ScsTcpSslClient(ScsTcpEndPoint serverEndPoint,  X509Certificate2 clientCert, string nombreServerCert,int pingTimeout,
-            Func<object, X509Certificate, X509Chain, SslPolicyErrors,bool> remoteCertificateFalidatonCallback,Func<object, string, X509CertificateCollection, X509Certificate, string[],X509Certificate> localCertificateSelectionCallback ):base(pingTimeout)
+        public ScsTcpSslClient(ScsTcpEndPoint serverEndPoint,  X509Certificate2Collection clientCert, string nombreServerCert,int pingTimeout,Func<object, X509Certificate, X509Chain, SslPolicyErrors,bool> remoteCertificateFalidatonCallback,Func<object, string, X509CertificateCollection, X509Certificate, string[],X509Certificate> localCertificateSelectionCallback ):base(pingTimeout)
         {
             _serverEndPoint = serverEndPoint;            
-            _clientCert = clientCert;
+            _clientCerts = clientCert;
             _nombreServerCert = nombreServerCert;
             _remoteCertificateFalidatonCallback = remoteCertificateFalidatonCallback;
             _localCertificateSelectionCallback = localCertificateSelectionCallback;
         }
+
+        
 
         /// <summary>
         /// Creates a communication channel using ServerIpAddress and ServerPort.
@@ -69,14 +78,14 @@ namespace Hik.Communication.Scs.Client.Tcp
                 }
                 var sslStream = new SslStream(client.GetStream(), false, 
                     new RemoteCertificateValidationCallback(_remoteCertificateFalidatonCallback),
-                    new LocalCertificateSelectionCallback(_localCertificateSelectionCallback ?? SelectLocalCertificate));
-
-                var clientCertificates = new X509Certificate2Collection();
-                if (_clientCert != null)
+                    _localCertificateSelectionCallback == null?null:new LocalCertificateSelectionCallback(_localCertificateSelectionCallback)
+                    );
+                
+                if (_clientCerts.Count<1)
                 {
-                    clientCertificates.Add(_clientCert);
+                    throw new Exception("No client certificate found");
                 }
-                sslStream.AuthenticateAsClient(_nombreServerCert, clientCertificates, SslProtocols.Tls12, false);
+                sslStream.AuthenticateAsClient(_nombreServerCert, _clientCerts, SslProtocols.Tls12, false);
                 return new TcpSslCommunicationChannel( _serverEndPoint, client, sslStream);
             }
             catch (AuthenticationException)
@@ -99,9 +108,9 @@ namespace Hik.Communication.Scs.Client.Tcp
         //    }
         //}
 
-        public X509Certificate SelectLocalCertificate(object sender, string targetHost, X509CertificateCollection localCertificates, X509Certificate remoteCertificate, string[] acceptableIssuers)
-        {
-            return _clientCert;
-        }
+        //public X509Certificate SelectLocalCertificate(object sender, string targetHost, X509CertificateCollection localCertificates, X509Certificate remoteCertificate, string[] acceptableIssuers)
+        //{
+        //    return _clientCerts;
+        //}
     }
 }

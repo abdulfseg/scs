@@ -7,6 +7,7 @@ using Hik.Communication.Scs.Communication.Messages;
 using Hik.Communication.Scs.Communication.Messengers;
 using Hik.Communication.ScsServices.Communication;
 using Hik.Communication.ScsServices.Communication.Messages;
+using log4net;
 
 namespace Hik.Communication.ScsServices.Client
 {
@@ -16,6 +17,8 @@ namespace Hik.Communication.ScsServices.Client
     /// <typeparam name="T">Type of service interface</typeparam>
     internal class ScsServiceClient<T> : IScsServiceClient<T> where T : class
     {
+        private static ILog _log = LogManager.GetLogger(MethodBase.GetCurrentMethod().DeclaringType);
+
         #region Public events
 
         /// <summary>
@@ -163,42 +166,52 @@ namespace Hik.Communication.ScsServices.Client
         /// <param name="e">Event arguments</param>
         private void RequestReplyMessenger_MessageReceived(object sender, MessageEventArgs e)
         {
+            try {
+                var invokeMessage = e.Message as ScsRemoteInvokeMessage;
+                if (invokeMessage == null)
+                {
+                    return;
+                }
+
+                //Check client object.
+                if(_clientObject == null)
+                {
+                    SendInvokeResponse(invokeMessage, null, new ScsRemoteException("Client does not wait for method invocations by server."));
+                    return;
+                }
+
+                //Invoke method
+                object returnValue;
+                try
+                {
+                    var type = _clientObject.GetType();
+                    var method = type.GetMethod(invokeMessage.MethodName);
+                    returnValue = method.Invoke(_clientObject, invokeMessage.Parameters);
+                }
+                catch (TargetInvocationException ex)
+                {
+                    _log.Error($"Exception:'{ex}',Message:'{ex.Message}',StackTrace:'{ex.StackTrace}'");
+                    var innerEx = ex.InnerException;
+                    SendInvokeResponse(invokeMessage, null, new ScsRemoteException(innerEx?.Message, innerEx));
+                    return;
+                }
+                catch (Exception ex)
+                {
+                    _log.Error($"Exception:'{ex}',Message:'{ex.Message}',StackTrace:'{ex.StackTrace}'");
+                    SendInvokeResponse(invokeMessage, null, new ScsRemoteException(ex.Message, ex));
+                    return;
+                }
+
+                //Send return value
+                SendInvokeResponse(invokeMessage, returnValue, null);
+
+            }
+            catch (Exception ex) {
+                _log.Error($"Exception:'{ex}',Message:'{ex.Message}',StackTrace:'{ex.StackTrace}'");
+                throw;
+            }
             //Cast message to ScsRemoteInvokeMessage and check it
-            var invokeMessage = e.Message as ScsRemoteInvokeMessage;
-            if (invokeMessage == null)
-            {
-                return;
-            }
 
-            //Check client object.
-            if(_clientObject == null)
-            {
-                SendInvokeResponse(invokeMessage, null, new ScsRemoteException("Client does not wait for method invocations by server."));
-                return;
-            }
-
-            //Invoke method
-            object returnValue;
-            try
-            {
-                var type = _clientObject.GetType();
-                var method = type.GetMethod(invokeMessage.MethodName);
-                returnValue = method.Invoke(_clientObject, invokeMessage.Parameters);
-            }
-            catch (TargetInvocationException ex)
-            {
-                var innerEx = ex.InnerException;
-                SendInvokeResponse(invokeMessage, null, new ScsRemoteException(innerEx.Message, innerEx));
-                return;
-            }
-            catch (Exception ex)
-            {
-                SendInvokeResponse(invokeMessage, null, new ScsRemoteException(ex.Message, ex));
-                return;
-            }
-
-            //Send return value
-            SendInvokeResponse(invokeMessage, returnValue, null);
         }
 
         /// <summary>
@@ -211,17 +224,11 @@ namespace Hik.Communication.ScsServices.Client
         {
             try
             {
-                _requestReplyMessenger.SendMessage(
-                    new ScsRemoteInvokeReturnMessage
-                    {
-                        RepliedMessageId = requestMessage.MessageId,
-                        ReturnValue = returnValue,
-                        RemoteException = exception
-                    });
+                _requestReplyMessenger.SendMessage(new ScsRemoteInvokeReturnMessage{RepliedMessageId = requestMessage.MessageId,ReturnValue = returnValue,RemoteException = exception});
             }
-            catch
+            catch(Exception ex)
             {
-
+                 _log.Error($"Exception:'{ex}',Message:'{ex.Message}',StackTrace:'{ex.StackTrace}'");
             }
         }
         

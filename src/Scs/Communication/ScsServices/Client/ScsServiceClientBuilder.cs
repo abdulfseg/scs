@@ -54,6 +54,39 @@ namespace Hik.Communication.ScsServices.Client
         }
 
         /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clientCert"></param>
+        /// <param name="nombreServerCert"></param>
+        /// <param name="endpoint"></param>
+        /// <param name="pingTimeout"></param>
+        /// <param name="remoteCertificateFalidatonCallback"></param>
+        /// <param name="localCertificateSelectionCallback"></param>
+        /// <param name="clientObject"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static IScsServiceClient<T> CreateSecureClient<T>( X509Certificate2Collection clientCert, string nombreServerCert, ScsEndPoint endpoint,TimeSpan pingTimeout=default(TimeSpan),Func<object, X509Certificate, X509Chain, SslPolicyErrors,bool> remoteCertificateFalidatonCallback=null,Func<object, string, X509CertificateCollection, X509Certificate, string[],X509Certificate> localCertificateSelectionCallback=null, object clientObject = null) where T : class
+        {
+            return new ScsServiceClient<T>(endpoint.CreateSecureClient(clientCert, nombreServerCert,pingTimeout.Seconds<=0?30000:pingTimeout.Seconds,remoteCertificateFalidatonCallback,localCertificateSelectionCallback), clientObject);
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="clientCert"></param>
+        /// <param name="nombreServerCert"></param>
+        /// <param name="endpointAddress"></param>
+        /// <param name="pingTimeout"></param>
+        /// <param name="remoteCertificateFalidatonCallback"></param>
+        /// <param name="localCertificateSelectionCallback"></param>
+        /// <param name="clientObject"></param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public static IScsServiceClient<T> CreateSecureClient<T>(X509Certificate2Collection clientCert, string nombreServerCert, string endpointAddress, TimeSpan pingTimeout = default(TimeSpan), Func<object, X509Certificate, X509Chain, SslPolicyErrors, bool> remoteCertificateFalidatonCallback = null, Func<object, string, X509CertificateCollection, X509Certificate, string[], X509Certificate> localCertificateSelectionCallback = null, object clientObject = null) where T : class {
+            return CreateSecureClient<T>( clientCert, nombreServerCert, ScsEndPoint.CreateEndPoint(endpointAddress),pingTimeout,remoteCertificateFalidatonCallback,localCertificateSelectionCallback, clientObject);
+        }
+
+        /// <summary>
         /// SSL
         /// </summary>
         /// <typeparam name="T"></typeparam>
