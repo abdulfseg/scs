@@ -59,6 +59,7 @@
     <Compile Include="Communication\ScsServices\Communication\Messages\ScsRemoteInvokeMessage.cs" />
     <Compile Include="Communication\ScsServices\Communication\Messages\ScsRemoteInvokeReturnMessage.cs" />
     <Compile Include="Communication\ScsServices\Communication\RemoteInvokeProxy.cs" />
+    <Compile Include="Communication\Scs\ConnectionProperties.cs" />
     <Compile Include="Communication\Scs\Client\Tcp\ScsTcpSslClient.cs" />
     <Compile Include="Communication\Scs\Communication\Channels\Tcp\TcpSslCommunicationChannel.cs" />
     <Compile Include="Communication\Scs\Communication\Channels\Tcp\TcpSslConnectionListener.cs" />

@@ -7,6 +7,7 @@ using Hik.Communication.Scs.Communication.EndPoints.Tcp;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Authentication;
+using Hik.Communication.Scs.Client.Tcp;
 
 namespace Hik.Communication.Scs.Communication.Channels.Tcp
 {
@@ -112,7 +113,7 @@ namespace Hik.Communication.Scs.Communication.Channels.Tcp
                     {
                         SslStream sslStream = new SslStream(client.GetStream(), false, new RemoteCertificateValidationCallback(ValidateCertificate)); 
                         
-                        sslStream.AuthenticateAsServer(_serverCert, true, System.Security.Authentication.SslProtocols.Tls12 /*SslProtocols.None*/, true);
+                        sslStream.AuthenticateAsServer(_serverCert, true, ConnectionProperties.SslProtocol==SslProtocols.None? SslProtocols.Tls12:ConnectionProperties.SslProtocol , true);
 
                         OnCommunicationChannelConnected(new TcpSslCommunicationChannel(_endPoint, client, sslStream));
                     }

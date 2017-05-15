@@ -12,6 +12,7 @@ using System.Security.Cryptography.X509Certificates;
 
 namespace Hik.Communication.Scs.Client.Tcp
 {
+
     /// <summary>
     /// This class is used to communicate with server over TCP/IP protocol.
     /// </summary>
@@ -85,7 +86,7 @@ namespace Hik.Communication.Scs.Client.Tcp
                 {
                     throw new Exception("No client certificate found");
                 }
-                sslStream.AuthenticateAsClient(_nombreServerCert, _clientCerts, SslProtocols.Tls12, false);
+                sslStream.AuthenticateAsClient(_nombreServerCert, _clientCerts,ConnectionProperties.SslProtocol==SslProtocols.None? SslProtocols.Tls12:ConnectionProperties.SslProtocol, false);
                 return new TcpSslCommunicationChannel( _serverEndPoint, client, sslStream);
             }
             catch (AuthenticationException)
